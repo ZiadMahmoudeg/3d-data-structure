@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Array و Linked List بالـ 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f1;--pn:#fff;--ink:#14242c;--mut:#4c6068;--ln:#c9d6d2;--a:#0e9f88;--b:#d9480f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b24;--pn:#16262f;--ink:#e9e2d0;--mut:#8fa3ab;--ln:#27404c;--a:#35d0b5;--b:#ff7a59}}
+:root[data-theme="dark"]{--bg:#0f1b24;--pn:#16262f;--ink:#e9e2d0;--mut:#8fa3ab;--ln:#27404c;--a:#35d0b5;--b:#ff7a59}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.7 Tajawal,Tahoma,sans-serif}
+header{padding:14px 16px 0}h1{margin:0;font-size:1.4rem}
+.tabs{display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap}
+.tabs button,.ctl button{font:700 15px Tajawal,Tahoma,sans-serif;padding:8px 14px;border-radius:8px;border:1px solid var(--ln);background:var(--pn);color:var(--ink);cursor:pointer}
+.tabs button.on{background:var(--a);color:#0f1b24;border-color:var(--a)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+main{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:14px;padding:0 16px 16px}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+#stage{height:min(52vh,460px);min-height:300px;border:1px solid var(--ln);border-radius:12px;background:var(--pn);position:relative;overflow:hidden}
+#cv{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.hint{position:absolute;inset-inline-start:10px;bottom:8px;font-size:12px;color:var(--mut)}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.ctl label{font-size:14px;color:var(--mut)}
+.ctl input{width:64px;font:700 15px Tajawal,sans-serif;padding:7px;border-radius:8px;border:1px solid var(--ln);background:var(--pn);color:var(--ink)}
+#step{min-height:92px;padding:12px 14px;border-radius:10px;border-inline-start:5px solid var(--b);background:var(--pn)}
+#log{margin:8px 0 0;padding:0 18px;font-size:13px;color:var(--mut);max-height:90px;overflow:auto}
+.side{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:12px 16px}
+.side h2,h3{margin:.2em 0 .4em;font-size:1.1rem}.side ul{margin:0;padding-inline-start:20px}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 8px;border-bottom:1px solid var(--ln);text-align:start}
+td.n{direction:ltr;font-family:ui-monospace,Consolas,monospace}
+.wide{overflow-x:auto;margin-top:10px}
+section{padding:0 16px 24px}
+.chg{background:var(--b);color:#0f1b24;font-weight:700}
+.nd{display:inline-flex;direction:ltr;border:2px solid var(--ln);border-radius:8px;overflow:hidden;font:700 14px ui-monospace,Consolas,monospace;vertical-align:middle}
+.nd span{padding:8px 12px;border-inline-start:1px solid var(--ln)}
+.nd .p{background:var(--a);color:#0f1b24}.nd .x{background:var(--b);color:#0f1b24}
+.ar{display:inline-block;margin:0 6px;color:var(--mut);font-weight:700}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}@media(max-width:860px){.cols{grid-template-columns:1fr}}
+code{direction:ltr;unicode-bidi:embed;font-family:ui-monospace,Consolas,monospace;background:var(--bg);padding:1px 6px;border-radius:5px}
+</style></head><body>
+<header><h1>الـ Array والـ Linked List في الذاكرة</h1></header>
+<div class="tabs" role="tablist">
+<button data-m="array" class="on">Array</button><button data-m="singly">Singly Linked List</button><button data-m="doubly">Doubly Linked List</button></div>
+<main>
+<div>
+<div id="stage"><canvas id="cv" aria-label="مشهد ثلاثي الأبعاد للذاكرة"></canvas><span class="hint">اسحب عشان تلف المشهد · السهم البرتقالي = next · التركواز = prev</span></div>
+<div class="ctl"><label>القيمة <input id="val" type="number" value="42"></label><label>الـ index <input id="idx" type="number" value="1" min="0"></label>
+<button id="bi">إضافة</button><button id="bd">حذف</button><button id="ba">وصول</button><button id="br">إعادة</button></div>
+<div id="step">اختار عملية وشوف اللي بيحصل في الذاكرة خطوة بخطوة.</div><ol id="log"></ol>
+</div>
+<div><div class="side" id="info"></div>
+<div class="side wide" style="margin-top:10px"><h3>جدول الذاكرة (مرتب بالعنوان)</h3><table id="tb"></table></div></div>
+</main>
+<section><h3>إيه هو next و prev؟</h3><div class="side"><p style="margin-top:0">كل Node بتخزن حاجتين: <b>البيانات</b> و<b>مؤشرات (pointers)</b>. المؤشر مش بيانات، هو <b>عنوان</b> Node تانية في الذاكرة بيقولك "الجار موجود هناك". وبالمؤشرات دي بتتربط العقد المتفرقة ببعض.</p>
+<div class="wide" dir="ltr"><p>Singly: <span class="nd"><span>data</span><span class="x">next</span></span> &nbsp; Doubly: <span class="nd"><span class="p">prev</span><span>data</span><span class="x">next</span></span></p>
+<p><b>head</b><span class="ar">→</span><span class="nd"><span class="p">null</span><span>12</span><span class="x">0x2A40</span></span><span class="ar">⇄</span><span class="nd"><span class="p">0x2000</span><span>7</span><span class="x">0x2310</span></span><span class="ar">⇄</span><span class="nd"><span class="p">0x2A40</span><span>25</span><span class="x">null</span></span></p></div>
+<div class="cols"><div><h3 style="color:var(--b)">next (التالي)</h3><ul><li>بيشاور على العقدة اللي <b>بعدي</b>.</li><li>بيخليك تمشي <b>قدام</b>: <code>cur = cur.next</code></li><li>آخر عقدة الـ next بتاعها <code>null</code>.</li><li>موجود في الـ Singly والـ Doubly.</li></ul></div>
+<div><h3 style="color:var(--a)">prev (السابق)</h3><ul><li>بيشاور على العقدة اللي <b>قبلي</b>.</li><li>بيخليك تمشي <b>ورا</b>: <code>cur = cur.prev</code></li><li>أول عقدة (head) الـ prev بتاعها <code>null</code>.</li><li>موجود في الـ Doubly بس، وبيكلف مؤشر زيادة في كل عقدة.</li></ul></div></div>
+<h3 style="margin-top:14px">إزاي بيتعدلوا؟</h3><ul><li><b>إضافة Node اسمها n بين p و x:</b> <code>n.next = x</code> الأول (عشان منفقدش الباقي)، وبعدين <code>p.next = n</code>. في الـ Doubly كمان: <code>n.prev = p</code> و <code>x.prev = n</code>.</li><li><b>حذف Node اسمها t:</b> <code>p.next = t.next</code>، وفي الـ Doubly كمان <code>t.next.prev = p</code>.</li><li>لما تضغط إضافة أو حذف، المؤشر اللي اتغير بيتلوّن في <b>جدول الذاكرة</b> فوق وبتشوف السهم بيتحول في المشهد.</li><li>الـ prev بيخلي حذف عقدة معروفة O(1) لأنها عارفة السابقة بنفسها، بدل ما تدوّر عليها من الـ head.</li></ul></div></section>
+<section><h3>مقارنة سريعة</h3><div class="wide side"><table>
+<tr><th></th><th>Array</th><th>Singly</th><th>Doubly</th></tr>
+<tr><td>شكل الذاكرة</td><td>متصلة</td><td>متفرقة</td><td>متفرقة</td></tr>
+<tr><td>الوصول بالـ index</td><td>O(1)</td><td>O(n)</td><td>O(n)</td></tr>
+<tr><td>إضافة/حذف في الأول</td><td>O(n)</td><td>O(1)</td><td>O(1)</td></tr>
+<tr><td>إضافة/حذف في النص</td><td>O(n) نقل</td><td>O(n) بحث + O(1) ربط</td><td>O(n) بحث + O(1) ربط</td></tr>
+<tr><td>حذف عقدة معروفة</td><td>O(n)</td><td>O(n) لازم السابقة</td><td>O(1)</td></tr>
+<tr><td>الحجم</td><td>ثابت غالباً</td><td>ديناميكي</td><td>ديناميكي</td></tr>
+<tr><td>تكلفة إضافية</td><td>لا شيء</td><td>مؤشر لكل عقدة</td><td>مؤشرين لكل عقدة</td></tr>
+<tr><td>اتجاه المشي</td><td>الاتنين</td><td>قدام بس</td><td>قدام وورا</td></tr></table></div></section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const T=THREE,$=id=>document.getElementById(id),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const INFO={
+array:`<h2>Array</h2><ul><li>العناصر جنب بعض في ذاكرة <b>متصلة</b>، كل عنصر 4 بايت هنا.</li><li>عنوان أي عنصر = البداية + index × الحجم، فالوصول O(1).</li><li>الإضافة والحذف في النص بينقلوا عناصر (O(n)).</li><li>حجمها ثابت؛ لو امتلت بنحجز أراي أكبر وننسخ فيها.</li><li>سريعة على الكاش لأن العناصر متجاورة.</li></ul>`,
+singly:`<h2>Singly Linked List</h2><ul><li>كل Node فيها: قيمة + <b>next</b> (عنوان اللي بعدها).</li><li>الـ Nodes متفرقة في الذاكرة، والمؤشرات هي اللي بتربطها.</li><li>الإضافة: اربط الجديدة بالتالية <b>الأول</b> وبعدين السابقة بالجديدة، وإلا بتضيع باقي القايمة.</li><li>الحذف: السابقة.next = التالية، والـ Node بتتحرر.</li><li>مفيش وصول مباشر؛ لازم تمشي من الـ head.</li></ul>`,
+doubly:`<h2>Doubly Linked List</h2><ul><li>كل Node فيها: قيمة + <b>next</b> + <b>prev</b>.</li><li>تقدر تمشي قدام ووراء.</li><li>الإضافة والحذف بيعدلوا أربع مؤشرات بدل اتنين.</li><li>حذف عقدة معروفة O(1) لأنها عارفة السابقة.</li><li>تكلفتها مؤشر زيادة في كل Node.</li></ul>`};
+let mode='array',nodes=[],busy=false,used=new Set;
+const cv=$('cv'),R=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));
+const S=new T.Scene(),C=new T.PerspectiveCamera(45,1,.1,100);
+S.add(new T.AmbientLight(0xffffff,.85));const dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(3,6,8);S.add(dl);
+let th=0,ph=.3,rad=14,drag=false,lx,ly,auto=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+cv.onpointerdown=e=>{drag=true;lx=e.clientX;ly=e.clientY;auto=false;cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!drag)return;th-=(e.clientX-lx)*.008;ph=Math.max(-.2,Math.min(1.3,ph+(e.clientY-ly)*.006));lx=e.clientX;ly=e.clientY};
+cv.onpointerup=()=>drag=false;
+cv.addEventListener('wheel',e=>{e.preventDefault();rad=Math.max(7,Math.min(24,rad+e.deltaY*.01))},{passive:false});
+new ResizeObserver(()=>{const b=$('stage');R.setSize(b.clientWidth,b.clientHeight,false);C.aspect=b.clientWidth/b.clientHeight;C.updateProjectionMatrix()}).observe($('stage'));
+function spr(txt,col,sz,w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;const t=new T.CanvasTexture(c),s=new T.Sprite(new T.SpriteMaterial({map:t,transparent:true,depthTest:false}));s.renderOrder=5;s.userData={c,t,col,f};s.scale.set(w/h*sz,sz,1);setT(s,txt);return s}
+function setT(s,txt){const{c,t,col,f}=s.userData,x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.fillStyle=col;x.font='700 '+(c.height*f)+'px Tajawal,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,c.width/2,c.height/2);t.needsUpdate=true}
+const headS=spr('head','#ff7a59',.6,256,128,.6),nullS=spr('null','#8fa3ab',.6,256,128,.6);S.add(headS,nullS);
+const G=new T.BufferGeometry(),PB=new Float32Array(900*3),CB=new Float32Array(900*3);
+G.setAttribute('position',new T.BufferAttribute(PB,3));G.setAttribute('color',new T.BufferAttribute(CB,3));
+const LS=new T.LineSegments(G,new T.LineBasicMaterial({vertexColors:true}));LS.frustumCulled=false;S.add(LS);
+function newAddr(){let a;do a='0x'+(8192+Math.floor(Math.random()*400)*8).toString(16).toUpperCase();while(used.has(a));used.add(a);return a}
+function setAddr(o,a){if(o.addr!==a){o.addr=a;setT(o.as,a)}}
+function mk(v){const col=mode==='array'?0x35d0b5:mode==='singly'?0xf2b84b:0xb794f6;
+const m=new T.Mesh(new T.BoxGeometry(1.2,1.2,1.2),new T.MeshStandardMaterial({color:col,roughness:.5,transparent:true}));
+const o={v,addr:'',next:null,prev:null,m,hl:0,fl:0,flT:0,op:1,opT:1,tgt:new T.Vector3()};
+o.vs=spr(String(v),'#0f1b24',.9,128,128,.62);o.as=spr('','#8fa3ab',.42,256,64,.62);
+o.vs.position.set(0,0,.9);o.as.position.set(0,-1.05,0);m.add(o.vs,o.as);S.add(m);return o}
+function layout(){const n=nodes.length,sp=mode==='array'?1.3:2.6;
+nodes.forEach((o,i)=>{if(mode==='array')setAddr(o,'0x'+(4096+i*4).toString(16).toUpperCase());
+const h=parseInt(o.addr.slice(2),16)>>3;o.tgt.set((i-(n-1)/2)*sp,mode==='array'?0:(h%3-1)*.9,mode==='array'?0:(h%2?.9:-.9))})}
+function reset(){for(const k in PM)delete PM[k];nodes.forEach(o=>S.remove(o.m));nodes=[];used.clear();
+[12,7,25,3].forEach(v=>{const o=mk(v);if(mode!=='array')setAddr(o,newAddr());nodes.push(o)});
+nodes.forEach((o,i)=>{if(mode!=='array'){o.next=nodes[i+1]||null;if(mode==='doubly')o.prev=nodes[i-1]||null}});
+layout();nodes.forEach(o=>o.m.position.copy(o.tgt));$('info').innerHTML=INFO[mode];$('idx').max=8;
+$('ba').textContent='وصول';say('جاهز. جرّب إضافة أو حذف أو وصول.');$('log').innerHTML='';tbl()}
+const say=h=>{$('step').innerHTML=h;const li=document.createElement('li');li.innerHTML=h;const l=$('log');l.appendChild(li);l.scrollTop=1e5};
+const flash=o=>o&&(o.hl=1);
+const PM={};function pc_(o,k){const v=o[k]?o[k].addr:'null',key=o.addr+k,ch=key in PM&&PM[key]!==v;PM[key]=v;return `<td class="n${ch?' chg':''}">${v}</td>`}
+function tbl(){const L=mode!=='array',D=mode==='doubly',rows=[...nodes].sort((a,b)=>parseInt(a.addr.slice(2),16)-parseInt(b.addr.slice(2),16));
+$('tb').innerHTML='<tr><th>العنوان</th><th>القيمة</th>'+(L?'<th>next</th>':'<th>index</th>')+(D?'<th>prev</th>':'')+'</tr>'+rows.map(o=>`<tr><td class="n">${o.addr}</td><td>${o.v}</td>`+(L?pc_(o,'next'):`<td>${nodes.indexOf(o)}</td>`)+(D?pc_(o,'prev'):'')+'</tr>').join('')}
+function drop(i){S.remove(nodes[i].m);nodes.splice(i,1)}
+async function run(f){if(busy)return;busy=true;document.querySelectorAll('.ctl button,.tabs button').forEach(b=>b.disabled=true);$('log').innerHTML='';
+try{await f()}finally{layout();tbl();busy=false;document.querySelectorAll('.ctl button,.tabs button').forEach(b=>b.disabled=false)}}
+const clampI=(n,mx)=>Math.max(0,Math.min(mx,Math.floor(+$('idx').value||0)));
+async function ins(){const n=nodes.length,i=clampI(0,n),v=$('val').value||'0';if(n>=8)return say('وصلنا للحد الأقصى للعرض (8 عناصر).');
+if(mode==='array'){say(`الأراي ذاكرتها متصلة، فلازم نفضّي الخانة ${i}: هننقل ${n-i} عنصر خطوة لليمين من الآخر للأول.`);await sleep(1200);
+for(let k=n-1;k>=i;k--){flash(nodes[k]);say(`نقل العنصر [${k}] (قيمته ${nodes[k].v}) إلى [${k+1}]`);await sleep(600)}
+const o=mk(v);nodes.splice(i,0,o);layout();o.m.position.set(o.tgt.x,3.2,0);flash(o);tbl();say(`كتبنا ${v} في الخانة [${i}]. لاحظ إن عناوين العناصر المنقولة اتغيرت. التكلفة O(n).`);await sleep(1500);return}
+const o=mk(v);setAddr(o,newAddr());nodes.splice(i,0,o);layout();o.m.position.set(o.tgt.x,3.2,o.tgt.z);o.flT=2.2;const p=nodes[i-1],nx=nodes[i+1];tbl();
+say(`1) اتحجزت Node جديدة في مكان فاضي في الذاكرة عنوانه <b>${o.addr}</b>. مفيش عنصر اتنقل.`);await sleep(1800);
+if(i>0){say('2) بنمشي من الـ head لحد العقدة اللي قبل مكان الإضافة (O(n) للوصول).');for(let k=0;k<i;k++){flash(nodes[k]);await sleep(500)}}
+o.next=nx||null;if(mode==='doubly')o.prev=p||null;tbl();
+say(`3) الجديدة.next = ${nx?nx.addr:'null'}${mode==='doubly'?` و الجديدة.prev = ${p?p.addr:'null'}`:''}. بنربط الجديدة بالباقي <b>الأول</b> عشان منفقدش باقي القايمة.`);await sleep(2200);
+if(p)p.next=o;if(mode==='doubly'&&nx)nx.prev=o;o.flT=0;tbl();
+say(`4) ${p?'السابقة.next':'الـ head'} بقى بيشاور على الجديدة${mode==='doubly'&&nx?' و التالية.prev كمان':''}. خلصنا بتعديل ${mode==='doubly'?'4':'2'} مؤشرات O(1).`);await sleep(2000)}
+async function del(){const n=nodes.length;if(!n)return say('القايمة فاضية.');const i=clampI(0,n-1),t=nodes[i];
+if(mode==='array'){say(`بنحذف العنصر [${i}] (${t.v}).`);t.flT=2.5;t.opT=0;flash(t);await sleep(1100);drop(i);layout();
+say(`بنقفل الفراغ: ${n-i-1} عنصر اتنقلوا خطوة لليسار وعناوينهم اتغيرت. O(n).`);nodes.slice(i).forEach(flash);tbl();await sleep(1800);return}
+say('1) بنمشي من الـ head لحد العقدة المطلوبة.');for(let k=0;k<=i;k++){flash(nodes[k]);await sleep(500)}
+const p=nodes[i-1],nx=nodes[i+1];
+say(`2) ${p?'السابقة.next':'الـ head'} = ${nx?nx.addr:'null'} (بنتخطى ${t.addr}).`);if(p)p.next=nx||null;tbl();await sleep(2000);
+if(mode==='doubly'){say(`3) التالية.prev = ${p?p.addr:'null'}.`);if(nx)nx.prev=p||null;tbl();await sleep(1800)}
+t.next=t.prev=null;t.flT=-2;t.opT=0;used.delete(t.addr);tbl();say(`${mode==='doubly'?'4':'3'}) العقدة ${t.addr} مفيش حد بيشاور عليها، فمساحتها بتتحرر. بعد ما وصلنا ليها العملية O(1).`);await sleep(1300);drop(i)}
+async function acc(){const n=nodes.length;if(!n)return;const i=clampI(0,n-1);
+if(mode==='array'){say(`العنوان = 0x1000 + ${i} × 4 = <b>${nodes[i].addr}</b>. حسبة واحدة ونروح للعنصر مباشرة: O(1).`);flash(nodes[i]);await sleep(1800);return}
+for(let k=0;k<=i;k++){flash(nodes[k]);say(`خطوة ${k+1}: عند ${nodes[k].addr}، بنقرا next عشان نروح للي بعده`);await sleep(650)}
+say(`وصلنا بعد ${i+1} خطوة: O(n). مفيش طريقة نقفز بيها مباشرة.`);await sleep(1200)}
+$('bi').onclick=()=>run(ins);$('bd').onclick=()=>run(del);$('ba').onclick=()=>run(acc);$('br').onclick=()=>run(async()=>reset());
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{if(busy)return;mode=b.dataset.m;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));reset()});
+const V=new T.Vector3,pc=new T.Color(0xff7a59),qc=new T.Color(0x35d0b5);
+function seg(a,b,col,k){const d=V.copy(b).sub(a).normalize(),s=new T.Vector3(-d.z,0,d.x).multiplyScalar(.14).add(new T.Vector3(0,.14,0).multiplyScalar(Math.abs(d.x)>.5?1:0)),h=b.clone().addScaledVector(d,-.28);
+[[a,b],[b,h.clone().add(s)],[b,h.clone().sub(s)]].forEach(([u,w])=>{[u,w].forEach(p=>{PB.set([p.x,p.y,p.z],k*3);CB.set([col.r,col.g,col.b],k*3);k++})});return k}
+function loop(t){requestAnimationFrame(loop);let k=0;const L=mode!=='array',D=mode==='doubly';
+nodes.forEach(o=>{const g=o.tgt.clone();o.fl+=(o.flT-o.fl)*.1;g.y+=o.fl;o.m.position.lerp(g,.12);o.hl*=.96;o.m.material.emissive.setRGB(o.hl*.9,o.hl*.7,.1*o.hl);o.op+=(o.opT-o.op)*.1;o.m.material.opacity=o.op});
+headS.visible=nullS.visible=L&&nodes.length>0;
+if(L&&nodes.length){const f=nodes[0],l=nodes[nodes.length-1];headS.position.copy(f.m.position).add(new T.Vector3(0,1.5,0));
+nullS.position.copy(l.m.position).add(new T.Vector3(1.9,0,0));
+nodes.forEach(o=>{const y=D?.22:0;if(o.next)k=seg(o.m.position.clone().add(new T.Vector3(.6,y,0)),o.next.m.position.clone().add(new T.Vector3(-.6,y,0)),pc,k);
+if(D&&o.prev)k=seg(o.m.position.clone().add(new T.Vector3(-.6,-.22,0)),o.prev.m.position.clone().add(new T.Vector3(.6,-.22,0)),qc,k)});
+if(!l.next){PB.set([l.m.position.x+.6,l.m.position.y,l.m.position.z,l.m.position.x+1.4,l.m.position.y,l.m.position.z],k*3);CB.set([.55,.63,.67,.55,.63,.67],k*3);k+=2}}
+G.setDrawRange(0,k);G.attributes.position.needsUpdate=G.attributes.color.needsUpdate=true;
+if(auto)th=Math.sin(t*.0004)*.4;
+C.position.set(rad*Math.sin(th)*Math.cos(ph),rad*Math.sin(ph)+1,rad*Math.cos(th)*Math.cos(ph));C.lookAt(0,0,0);R.render(S,C)}
+reset();requestAnimationFrame(loop);
+</script></body></html>
